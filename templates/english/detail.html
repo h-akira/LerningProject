@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link href="{% static 'mdeditor/css/editormd.min.css' %}" rel="stylesheet">
+<link href="{% static 'mdeditor/css/editormd.preview.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+{# <link rel="stylesheet" href="{% static 'css/codehilight.css' %}"> #}
+{# <link rel="stylesheet"href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.16.2/build/styles/default.min.css"> #}
+{% endblock extra_css %}
+
+{% block title %}{{ page.title }}{% endblock title %}
+{% block content %}
+<div class="has-background-grey has-text-white-bis">
+  <div class="padding-side padding-top-10 padding-bottom-10">
+    <h1 class="title is-1 has-text-white-bis">
+      {{ page.title }}
+      {% if not share and not page.public %}
+      <i class="bi bi-lock"></i>
+      {% endif %}
+    </h1>
+    <p>
+      (最終更新:{{ page.last_updated }})
+    </p>
+    <p>
+    {% if page.share %}
+    {% if share %}
+    <span hidden>
+    {% endif %}
+    <a id="share-link" href="{% url 'english:share_detail' share_code %}" class="button is-light is-link">
+      共有ページ
+    </a>
+    {% if share %}
+    </span>
+    {% endif %}
+    <button id="copy-button" class="button is-info is-light">
+      共有URLをコピー
+    </button>
+    {% endif %}
+    {% if not share and edit %}
+    <a href="{% url 'english:update' username slug %}" class="button is-light">
+      編集
+      {% if not page.edit_permission %}
+      <i class="bi bi-lock"></i>
+      {% endif %}
+    </a>
+    {% endif %}
+    {# {% if share and page.share_edit_permission %} #}
+    {# <a href="{% url 'english:share_update' share_code %}" class="button is-light"> #}
+    {#   編集 #}
+    {# </a> #}
+    {# {% endif %} #}
+    </p>
+  </div>
+</div>
+<div class="padding-side content" id="id_text">
+  {# {{ page.get_text_markdownx | safe }} #}
+  {# <textarea>{{ page.text }}</textarea> #}
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+{# <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.16.2/build/highlight.min.js"></script> #}
+{# <script>hljs.initHighlightingOnLoad();</script> #}
+<script src="{% static 'js/clip.js' %}"></script>
+{# <script src="{% static 'mdeditor/js/jquery.min.js' %}"></script> #}
+{# <script src="{% static 'mdeditor/js/editormd.min.js' %}"></script> #}
+{# <script src="{% static 'mdeditor/js/lib/marked.min.js' %}"></script> #}
+{# <script src="{% static 'mdeditor/js/lib/prettify.min.js' %}"></script> #}
+{# <script src="{% static 'mdeditor/js/lib/raphael.min.js' %}"></script> #}
+{# <script src="{% static 'mdeditor/js/lib/underscore.min.js' %}"></script> #}
+{# <script src="{% static 'mdeditor/js/lib/sequence-diagram.min.js' %}"></script> #}
+{# <script src="{% static 'mdeditor/js/lib/flowchart.min.js' %}"></script> #}
+{# <script src="{% static 'mdeditor/js/lib/jquery.flowchart.min.js' %}"></script> #}
+{# <script> #}
+{#   $(function () { #}
+{#     editormd.markdownToHTML("id_text", { #}
+{#       emoji           : true, #}
+{#       taskList        : true, #}
+{#       tex             : true,  #}
+{#       flowChart       : true, #}
+{#       sequenceDiagram : true, #}
+{#     }); #}
+{#     $(".reference-link").each(function (i,obj) { #}
+{#     console.log(obj) #}
+{#     }) #}
+{#   }) #}
+{# </script> #}
+{% endblock extra_js %}

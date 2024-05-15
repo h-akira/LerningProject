@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3 class="title is-3 padding-top-10">アカウント作成</h3>
+<form method="post">
+  {% csrf_token %}
+  {# {% for error in form.errors.values %} #}
+    {# {{ error }} #}
+  {# {% endfor %} #}
+  {{ form.as_p }}
+  <div class="padding-top-10">
+    <button type="submit" class="button is-link">作成</button>
+    <a href="{% url 'english:index' %}" class="button is-link">ホームに戻る</a>
+    <a href="{% url 'login' %}" class="button is-link is-light">ログインフォーム</a>
+  </div>
+</form>
+{% endblock content %}
