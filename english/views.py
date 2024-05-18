@@ -34,6 +34,10 @@ def share_detail(request, share_code):
     return not_found(request)
   return detail(request, page.user.username, page.slug, share=True)
 
+def detail_by_id(request, id):
+  page = get_object_or_404(PageTable, pk=id)
+  return detail(request, page.user.username, page.slug)
+
 def detail(request, username, slug, share=False):
   try:
     user = User.objects.get(username=username)
@@ -243,6 +247,8 @@ def s2dic(request, id):
   # ログインユーザーごとに辞書ページに移動（存在しなければ作成）
   s = get_object_or_404(SentenceTable, pk=id)
   if request.user.is_authenticated:
+    if request.user.dic_link == "weblio":
+      return redirect(f"https://ejje.weblio.jp/content/{s.lemma.lower()}")
     try:
       private_dic = PrivateDictionaryTable.objects.get(user=request.user, word=s.lemma, pos=s.pos)
     except PrivateDictionaryTable.DoesNotExist:
@@ -286,6 +292,7 @@ def private_dic_page(request, pk, source_id=None):
     # "source": source,
     "nav_tree_htmls":gen_tree_htmls(request, User, PageTable, a_white=True)
   }
+  print(private_dic.last_source.word)
   return render(request, 'english/private_dic.html', context)
 
 class PrivateDictionaryEditView(LoginRequiredMixin, UpdateView):
