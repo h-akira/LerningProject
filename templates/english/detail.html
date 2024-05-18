@@ -47,46 +47,14 @@
       {% endif %}
     </a>
     {% endif %}
-    {# {% if share and page.share_edit_permission %} #}
-    {# <a href="{% url 'english:share_update' share_code %}" class="button is-light"> #}
-    {#   編集 #}
-    {# </a> #}
-    {# {% endif %} #}
     </p>
   </div>
 </div>
 <div class="padding-side content" id="id_text">
   {{ sentence_html | safe }}
-  {# {{ page.get_text_markdownx | safe }} #}
-  {# <textarea>{{ page.text }}</textarea> #}
 </div>
 {% endblock content %}
 
 {% block extra_js %}
-{# <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.16.2/build/highlight.min.js"></script> #}
-{# <script>hljs.initHighlightingOnLoad();</script> #}
 <script src="{% static 'js/clip.js' %}"></script>
-{# <script src="{% static 'mdeditor/js/jquery.min.js' %}"></script> #}
-{# <script src="{% static 'mdeditor/js/editormd.min.js' %}"></script> #}
-{# <script src="{% static 'mdeditor/js/lib/marked.min.js' %}"></script> #}
-{# <script src="{% static 'mdeditor/js/lib/prettify.min.js' %}"></script> #}
-{# <script src="{% static 'mdeditor/js/lib/raphael.min.js' %}"></script> #}
-{# <script src="{% static 'mdeditor/js/lib/underscore.min.js' %}"></script> #}
-{# <script src="{% static 'mdeditor/js/lib/sequence-diagram.min.js' %}"></script> #}
-{# <script src="{% static 'mdeditor/js/lib/flowchart.min.js' %}"></script> #}
-{# <script src="{% static 'mdeditor/js/lib/jquery.flowchart.min.js' %}"></script> #}
-{# <script> #}
-{#   $(function () { #}
-{#     editormd.markdownToHTML("id_text", { #}
-{#       emoji           : true, #}
-{#       taskList        : true, #}
-{#       tex             : true,  #}
-{#       flowChart       : true, #}
-{#       sequenceDiagram : true, #}
-{#     }); #}
-{#     $(".reference-link").each(function (i,obj) { #}
-{#     console.log(obj) #}
-{#     }) #}
-{#   }) #}
-{# </script> #}
 {% endblock extra_js %}

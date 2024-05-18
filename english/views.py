@@ -5,11 +5,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.urls import reverse, reverse_lazy
 from django.views.generic import UpdateView
+# from django.views.generic import TemplateView
 from .models import PageTable, PrivateDictionaryTable, SentenceTable, PublicEn2JpDictionaryTable
 from .forms import PageForm, PageSettingsFormSet
 import random
 from django.conf import settings
-# from django.views.generic import TemplateView
 # 独自ライブラリ
 from tree import Tree, gen_tree_htmls, gen_pages_ordered_by_tree
 from language.english import text2SentenceTable, sentence2html
@@ -70,9 +70,6 @@ def detail(request, username, slug, share=False):
     sentence_html = sentence2html(sentence, reverse, new_tab= user.dic_new_tab)
   else:
     sentence_html = sentence2html(sentence, reverse, new_tab=True)
-  # print("--------------------")
-  # print(sentence_html)
-  # print("--------------------")
   context = {
     "page": page,
     "username": username,
@@ -170,9 +167,6 @@ def update(request, username, slug, share=False):
       form = PageForm(instance=page)
       sentence = SentenceTable.objects.filter(page=page)
       sentence_init = sentence2html(sentence, reverse, no_html=True)
-      # sentence_init = ""
-      # for s in sentence:
-      #   sentence_init += f"{s.word} "
       form.fields['sentence'].initial = sentence_init
       context = {
         "id": page.id,
@@ -265,17 +259,6 @@ def s2dic(request, id):
   else:
     return redirect(f"https://ejje.weblio.jp/content/{s.lemma.lower()}")
     # public_dicを作るべき
-  #   mean_jp = _get_mean_jp(s.lemma)
-  #   private_dic=None
-  # context = {
-  #   "word": s.word,
-  #   "lemma": s.lemma,
-  #   "pos": s.pos,
-  #   "private_dic": private_dic,
-  #   "nav_tree_htmls":gen_tree_htmls(request, User, PageTable, a_white=True)
-  # }
-  # # return render(request, 'english/test_s2dic.html', context)
-  # return redirect(f"https://ejje.weblio.jp/content/{s.lemma}")
 
 @login_required
 def private_dic_page(request, pk, source_id=None):
@@ -301,7 +284,5 @@ class PrivateDictionaryEditView(LoginRequiredMixin, UpdateView):
   template_name = 'english/private_edit.html'
   def get_success_url(self):
     return reverse_lazy('english:private_dic_page', kwargs={'pk': self.object.pk})
-
-
 
 
