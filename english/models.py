@@ -51,7 +51,7 @@ class PrivateDictionaryTable(models.Model):
   mean_jp = models.TextField(blank=True)  # 初期値は辞書を参照するがユーザーが編集できる
   # memo = models.TextField(blank=True)
   last_access = models.DateTimeField(auto_now=True)  # 更新も含む
-  last_source = models.ForeignKey(SentenceTable, on_delete=models.CASCADE, null=True, blank=True)
+  last_source = models.ForeignKey(SentenceTable, on_delete=models.SET_NULL, null=True, blank=True)
   access_counter = models.IntegerField(default=0)
   # public_en2jp_dictionary = models.ForeignKey(PublicEn2JpDictionaryTable, on_delete=models.CASCADE, null=True, blank=True)
   class Meta:
