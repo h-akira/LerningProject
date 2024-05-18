@@ -15,44 +15,31 @@
 <div class="has-background-link has-text-white-bis">
   <div class="padding-side padding-top-10 padding-bottom-10">
     <h1 class="title is-1 has-text-white-bis">
-      {{ private_dic.word }}
-      {% if private_dic.star %}
-      <i class="bi bi-bookmark-star"></i>
-      {% endif %}
+      {{ word }}
     </h1>
-    {% if private_dic.last_source %}
+    {% if source %}
     <p>
-      直近参照元表記: {{ private_dic.last_source.word }}
+      参照元表記　: {{ source }}
     </p>
     {% endif %}
-    <p>
-      最終アクセス　: {{ private_dic.last_access }}
-    </p>
-    <p>
-      アクセス回数　: {{ private_dic.access_counter }}
-    </p>
-    <a href="{% url 'english:private_dic_edit' private_dic.id %}" class="button is-light is-link">
-      編集
-    </a>
-    {% if private_dic.last_source %}
-    <a href="{% url 'english:detail_by_id' private_dic.last_source.page.id %}" class="button is-light is-link">
-      直近参照元
+    {% if source_id %}
+    <a href="{% url 'english:detail_by_id' source_page_id %}" class="button is-light is-link">
+      参照元に戻る
     </a>
     {% endif %}
-    {# <button id="copy-button" class="button is-info is-light"> #}
-    {#   共有URLをコピー #}
-    {# </button> #}
   </div>
 </div>
 <div class="padding-side content" id="id_text">
-  <p>品詞: {{ private_dic.pos_jp }}</p>
+  {% if pos %}
+  <p>品詞: {{ pos }}</p>
+  {% endif %}
   <p>意味:</p>
-  <p>{{ private_dic.mean_jp }}</p>
+  <p>{{ mean }}</p>
   <p>外部リンク:</p>
   <div class="content">
     <ul>
       <li>
-        <a href="https://ejje.weblio.jp/content/{{ private_dic.word }}" target="_blank" rel="noopener noneferrer">Weblio</a>
+        <a href="https://ejje.weblio.jp/content/{{ word }}" target="_blank" rel="noopener noneferrer">Weblio</a>
       </li>
     </ul>
   </div>

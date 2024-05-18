@@ -12,7 +12,7 @@ import random
 from django.conf import settings
 # 独自ライブラリ
 from tree import Tree, gen_tree_htmls, gen_pages_ordered_by_tree
-from language.english import text2SentenceTable, sentence2html
+from language.english import text2SentenceTable, sentence2html, POS_DICTIONARY
 from urllib.parse import quote
 
 def index(request):
@@ -239,12 +239,14 @@ def _get_mean_jp(word):
 
 def s2dic(request, id):
   # ログインユーザーごとに辞書ページに移動（存在しなければ作成）
-  s = get_object_or_404(SentenceTable, pk=id)
   if request.user.is_authenticated:
+    s = get_object_or_404(SentenceTable, pk=id)
     if request.user.dic_link == "weblio":
       return redirect(f"https://ejje.weblio.jp/content/{s.lemma.lower()}")
     try:
       private_dic = PrivateDictionaryTable.objects.get(user=request.user, word=s.lemma, pos=s.pos)
+      private_dic.last_source = s
+      private_dic.save()
     except PrivateDictionaryTable.DoesNotExist:
       mean_jp = _get_mean_jp(s.lemma)
       private_dic = PrivateDictionaryTable(
@@ -252,35 +254,62 @@ def s2dic(request, id):
         word=s.lemma.lower(),  # 小文字に統一
         pos=s.pos,
         mean_jp=mean_jp,
-        memo=""
+        memo="",
+        last_source=s
       )
       private_dic.save()
-    return redirect("english:private_dic_page_with_source", pk=private_dic.id,source_id=id)
+    # return redirect("english:private_dic_page_with_source", pk=private_dic.id,source_id=id)
+    return redirect("english:private_dic_page", pk=private_dic.id)
   else:
-    return redirect(f"https://ejje.weblio.jp/content/{s.lemma.lower()}")
-    # public_dicを作るべき
+    # return redirect(f"https://ejje.weblio.jp/content/{s.lemma.lower()}")
+    return redirect("english:public_en2jp_from_sentence", source_id=id)
 
 @login_required
-def private_dic_page(request, pk, source_id=None):
+# def private_dic_page(request, pk, source_id=None):
+def private_dic_page(request, pk):
   private_dic = get_object_or_404(PrivateDictionaryTable, pk=pk)
   if private_dic.user != request.user:
     return redirect("english:index")
-  if source_id:
-    source = SentenceTable.objects.get(pk=source_id)
-    private_dic.last_source = source
+  # if source_id:
+  #   source = SentenceTable.objects.get(pk=source_id)
+  #   private_dic.last_source = source
   private_dic.access_counter += 1
   private_dic.save()
   context = {
     "private_dic": private_dic,
-    # "source": source,
     "nav_tree_htmls":gen_tree_htmls(request, User, PageTable, a_white=True)
   }
   print(private_dic.last_source.word)
   return render(request, 'english/private_dic.html', context)
 
+def public_en2jp_dic_page_from_sentence(request, source_id=None):
+  s = get_object_or_404(SentenceTable, pk=source_id)
+  return public_en2jp_dic_page(
+    request, 
+    s.lemma.lower(), 
+    source=s.word, 
+    source_id=source_id, 
+    pos=s.pos_jp(), 
+    source_page_id=s.page.id
+  )
+
+def public_en2jp_dic_page(request, word, source=None, source_id=None, pos=None, source_page_id=None):
+  mean = _get_mean_jp(word)
+  context = {
+    "word": word,
+    "mean": mean,
+    "source": source,
+    "source_id": source_id,
+    "pos": pos,
+    "source_page_id": source_page_id,
+    "nav_tree_htmls":gen_tree_htmls(request, User, PageTable, a_white=True)
+  }
+  return render(request, 'english/public_dic.html', context)
+
 class PrivateDictionaryEditView(LoginRequiredMixin, UpdateView):
   model = PrivateDictionaryTable
-  fields = ('word','pos','star','mean_jp','memo')
+  # fields = ('word','pos','star','mean_jp','memo')
+  fields = ('word','pos','star','mean_jp')
   template_name = 'english/private_edit.html'
   def get_success_url(self):
     return reverse_lazy('english:private_dic_page', kwargs={'pk': self.object.pk})

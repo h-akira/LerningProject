@@ -40,6 +40,8 @@ class SentenceTable(models.Model):
   word = models.CharField(max_length=31)  # 文中の単語がそのまま入る
   lemma = models.CharField(max_length=31)  # 文中の単語の原型が入る
   pos = models.CharField(max_length=15, choices=POS_CHOICES)  # part of speech=品詞
+  def pos_jp(self):
+    return POS_DICTIONARY[self.pos]
 
 class PrivateDictionaryTable(models.Model):
   user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -47,7 +49,7 @@ class PrivateDictionaryTable(models.Model):
   pos = models.CharField(max_length=31, choices=POS_CHOICES)  # part of speech=品詞
   star = models.BooleanField(default=False)
   mean_jp = models.TextField(blank=True)  # 初期値は辞書を参照するがユーザーが編集できる
-  memo = models.TextField(blank=True)
+  # memo = models.TextField(blank=True)
   last_access = models.DateTimeField(auto_now=True)  # 更新も含む
   last_source = models.ForeignKey(SentenceTable, on_delete=models.CASCADE, null=True, blank=True)
   access_counter = models.IntegerField(default=0)
