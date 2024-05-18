@@ -15,10 +15,12 @@
   <div class="padding-side padding-top-10 padding-bottom-10">
     <h1 class="title is-1 has-text-white-bis">
       {{ page.title }}
-      {% if not share and not page.public %}
-      <i class="bi bi-lock"></i>
-      {% endif %}
     </h1>
+    {% if page.description %}
+    <p>
+      {{ page.description }}
+    </p>
+    {% endif %}
     <p>
       (最終更新:{{ page.last_updated }})
     </p>
@@ -54,6 +56,7 @@
   </div>
 </div>
 <div class="padding-side content" id="id_text">
+  {{ sentence_html | safe }}
   {# {{ page.get_text_markdownx | safe }} #}
   {# <textarea>{{ page.text }}</textarea> #}
 </div>

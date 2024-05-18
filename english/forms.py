@@ -18,6 +18,7 @@ class PageForm(forms.ModelForm):
       "slug",
       "priority",
       "title",
+      "description",
       "share",
       "share_code",
     )
@@ -35,6 +36,12 @@ class PageForm(forms.ModelForm):
       'share_code': forms.TextInput(
         attrs={
           'style': 'width: 500px;'
+        }
+      ),
+      # 'description': forms.Textarea(
+      'description': forms.TextInput(
+        attrs={
+          'style': 'width: 100%; height: auto;'
         }
       ),
     }

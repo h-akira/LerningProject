@@ -1,5 +1,5 @@
 from django.urls import path, re_path
-from .views import index, detail, create, update, delete, page_settings, share_detail, not_found, word2dic
+from .views import index, detail, create, update, delete, page_settings, share_detail, not_found, s2dic, private_dic_page, PrivateDictionaryEditView
 
 app_name = "english"
 
@@ -13,5 +13,8 @@ urlpatterns = [
   re_path(r'^detail/(?P<username>[^/]+)/(?P<slug>.+)/$', detail, name='detail'),
   re_path(r'^update/(?P<username>[^/]+)/(?P<slug>.+)/$', update, name='update'),
   path('delete/<int:id>/', delete, name='delete'),
-  path('word/<str:word>/<str:lemma>/<str:pos>/', word2dic, name='word2dic'),
+  path('s/<int:id>/', s2dic, name='s2dic'),
+  # path('private/detail/<int:pk>/', private_dic_page, name='private_dic_page'),
+  path('private/detail/<int:pk>/<str:source_id>/', private_dic_page, name='private_dic_page_with_source'),
+  path('private/edit/<int:pk>/', PrivateDictionaryEditView.as_view(), name='private_dic_edit'),
 ]

@@ -12,4 +12,4 @@ else:
   urlpatterns = [
     path('signup/', views.CannotSignUpView.as_view(), name='signup'),
   ]
-
+urlpatterns.append(path('settings/<int:pk>/', views.PrivateSettingsView.as_view(), name='private_settings'))

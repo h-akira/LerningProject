@@ -1,9 +1,11 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from accounts.models import CustomUser as User
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from django.urls import reverse
-from .models import PageTable, PrivateDictionaryTable, SentenceTable
+from django.urls import reverse, reverse_lazy
+from django.views.generic import UpdateView
+from .models import PageTable, PrivateDictionaryTable, SentenceTable, PublicEn2JpDictionaryTable
 from .forms import PageForm, PageSettingsFormSet
 import random
 from django.conf import settings
@@ -43,10 +45,13 @@ def detail(request, username, slug, share=False):
       if user == request.user:
         return redirect("english:create_with_slug",slug=slug)
       else:
+        print("user != request.user")
         return not_found(request)
     else:
+      print("not request.user.is_authenticated")
       return not_found(request)
-  if not share and page.user != request.user:
+  if not share and page.user != request.user and not user.is_superuser:
+    print("not share and page.user != request.user and not user.is_superuser")
     return not_found(request)
   if page.user == request.user:
     edit = True
@@ -56,6 +61,14 @@ def detail(request, username, slug, share=False):
     share_url = f"{settings.DOMAIN}{reverse('english:share_detail', args=[page.share_code])}"
   else:
     share_url = None
+  sentence = SentenceTable.objects.filter(page=page)
+  if request.user.is_authenticated:
+    sentence_html = sentence2html(sentence, reverse, new_tab= user.dic_new_tab)
+  else:
+    sentence_html = sentence2html(sentence, reverse, new_tab=True)
+  # print("--------------------")
+  # print(sentence_html)
+  # print("--------------------")
   context = {
     "page": page,
     "username": username,
@@ -64,6 +77,7 @@ def detail(request, username, slug, share=False):
     "share_url": share_url,
     "share_code": page.share_code,
     "edit": edit,
+    "sentence_html": sentence_html,
     "nav_tree_htmls":gen_tree_htmls(request, User, PageTable, a_white=True),
   }
   return render(request, 'english/detail.html', context)
@@ -73,19 +87,21 @@ def create(request, slug=None):
   if request.method == 'POST':
     form = PageForm(request.POST)
     if form.is_valid():
+      print("valid")
       instance = form.save(commit=False)  # まだDBには保存しない
       instance.user = request.user  # userをセット
       instance.save()  # DBに保存
-      additional_info = form.cleaned_data['sentence']
-      print("_"*50)
-      print(additional_info)
-      print("_"*50)
+      sentence = form.cleaned_data['sentence']
+      text2SentenceTable(sentence, instance, SentenceTable)
       if request.POST['action'] == 'update':
         return redirect("english:update",instance.user.username,instance.slug)
       elif request.POST['action'] == 'detail':
         return redirect("english:detail",instance.user.username,instance.slug)
       else:
         raise Exception
+    else:
+      print("invalid")
+      raise Exception
   else:
     allow="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     length=32
@@ -125,7 +141,11 @@ def update(request, username, slug, share=False):
     if request.method == 'POST':
       form = PageForm(request.POST, instance=page)
       if form.is_valid():
-        form.save()
+        instance = form.save(commit=False)  # まだDBには保存しない
+        # instance.user = request.user  # userをセット
+        instance.save()  # DBに保存
+        sentence = form.cleaned_data['sentence']
+        text2SentenceTable(sentence, instance, SentenceTable)
         if request.POST['action'] == 'update':
           if share:
             return redirect("english:share_update",page.share_code)
@@ -144,6 +164,12 @@ def update(request, username, slug, share=False):
       else:
         author = False
       form = PageForm(instance=page)
+      sentence = SentenceTable.objects.filter(page=page)
+      sentence_init = sentence2html(sentence, reverse, no_html=True)
+      # sentence_init = ""
+      # for s in sentence:
+      #   sentence_init += f"{s.word} "
+      form.fields['sentence'].initial = sentence_init
       context = {
         "id": page.id,
         "username": username,
@@ -199,15 +225,75 @@ def page_settings(request):
     }
     return render(request, 'english/page_settings.html', context)
 
-def word2dic(request, word, lemma, pos):
+def _get_mean_jp(word):
+  public_en2jp_dic = PublicEn2JpDictionaryTable.objects.filter(word__iexact=word)
+  if public_en2jp_dic.exists():
+    if public_en2jp_dic.count() == 1:
+      mean = public_en2jp_dic.first().mean
+    else:
+      mean = ""
+      for i, d in enumerate(public_en2jp_dic):
+        mean += f"{i+1}. {d.mean}\n"
+      mean = mean[:-1]
+  else:
+    mean = "<未登録>"
+  return mean
+
+def s2dic(request, id):
   # ログインユーザーごとに辞書ページに移動（存在しなければ作成）
+  s = get_object_or_404(SentenceTable, pk=id)
+  if request.user.is_authenticated:
+    try:
+      private_dic = PrivateDictionaryTable.objects.get(user=request.user, word=s.lemma, pos=s.pos)
+    except PrivateDictionaryTable.DoesNotExist:
+      mean_jp = _get_mean_jp(s.lemma)
+      private_dic = PrivateDictionaryTable(
+        user=request.user,
+        word=s.lemma.lower(),  # 小文字に統一
+        pos=s.pos,
+        mean_jp=mean_jp,
+        memo=""
+      )
+      private_dic.save()
+    return redirect("english:private_dic_page_with_source", pk=private_dic.id,source_id=id)
+  else:
+    return redirect(f"https://ejje.weblio.jp/content/{s.lemma.lower()}")
+    # public_dicを作るべき
+  #   mean_jp = _get_mean_jp(s.lemma)
+  #   private_dic=None
+  # context = {
+  #   "word": s.word,
+  #   "lemma": s.lemma,
+  #   "pos": s.pos,
+  #   "private_dic": private_dic,
+  #   "nav_tree_htmls":gen_tree_htmls(request, User, PageTable, a_white=True)
+  # }
+  # # return render(request, 'english/test_s2dic.html', context)
+  # return redirect(f"https://ejje.weblio.jp/content/{s.lemma}")
+
+@login_required
+def private_dic_page(request, pk, source_id=None):
+  private_dic = get_object_or_404(PrivateDictionaryTable, pk=pk)
+  if private_dic.user != request.user:
+    return redirect("english:index")
+  if source_id:
+    source = SentenceTable.objects.get(pk=source_id)
+    private_dic.last_source = source
+  private_dic.access_counter += 1
+  private_dic.save()
   context = {
-    "word": word,
-    "lemma": lemma,
-    "pos": pos,
+    "private_dic": private_dic,
+    # "source": source,
+    "nav_tree_htmls":gen_tree_htmls(request, User, PageTable, a_white=True)
   }
-  return render(request, 'english/test_word2dic.html', context)
-  
+  return render(request, 'english/private_dic.html', context)
+
+class PrivateDictionaryEditView(LoginRequiredMixin, UpdateView):
+  model = PrivateDictionaryTable
+  fields = ('word','pos','star','mean_jp','memo')
+  template_name = 'english/private_edit.html'
+  def get_success_url(self):
+    return reverse_lazy('english:private_dic_page', kwargs={'pk': self.object.pk})
 
 
 

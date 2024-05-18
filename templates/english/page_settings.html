@@ -46,10 +46,10 @@
             <td class="has-text-centered">{{ form.public }}</td>
             <td class="has-text-centered">{{ form.edit_permission }}</td>
             <td class="has-text-centered">
-              <a href="{% url 'Wiki:detail' user.username page.slug %}" class="button is-link is-small is-outlined">
+              <a href="{% url 'english:detail' user.username page.slug %}" class="button is-link is-small is-outlined">
                 表示
               </a>
-              <a href="{% url 'Wiki:update' user.username page.slug %}" class="button is-link is-small is-outlined">
+              <a href="{% url 'english:update' user.username page.slug %}" class="button is-link is-small is-outlined">
                 編集
               </a>
             </td>

@@ -35,12 +35,18 @@
         <a class="navbar-item sidebar-toggle" role="button">記事</a>
         {% if user.is_authenticated %}
         <a class="navbar-item" href="{% url 'english:create' %}">新規作成</a>
-        <a class="navbar-item" href="{% url 'english:page_settings' %}">編集</a>
+        <a class="navbar-item" href="{% url 'english:page_settings' %}">ページ設定</a>
+        <a class="navbar-item" href="{% url 'accounts:private_settings' user.id %}">個人設定</a>
         {% endif %}
       </div>
       <div class="navbar-end">
         {% if user.is_authenticated %}
-        <a class="navbar-item" href="{% url 'logout' %}">{{ user }} - Logout</a>
+        <div class="navbar-item">
+          <form action='{% url "logout" %}' method='post' name='logout'>
+            {% csrf_token %}
+            <a href="javascript:logout.submit()" class="has-text-white-bis">{{ user }} - Logout</a>
+          </form>
+        </div>
         {% else %}
         <a href="{% url 'login' %}" class="navbar-item">
           Log in

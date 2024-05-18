@@ -70,7 +70,7 @@ class Tree:
 def gen_tree_htmls(request, User, PageTable, a_white=True):
   htmls = []
   users = [user for user in User.objects.filter(is_superuser=True)]
-  if request.user.is_authenticated:
+  if request.user.is_authenticated and not request.user.is_superuser:
     users.append(request.user)
   for user in users:
     pages = PageTable.objects.filter(user=user).order_by('-priority')
