@@ -254,7 +254,7 @@ def s2dic(request, id):
         word=s.lemma.lower(),  # 小文字に統一
         pos=s.pos,
         mean_jp=mean_jp,
-        memo="",
+        # memo="",
         last_source=s
       )
       private_dic.save()
