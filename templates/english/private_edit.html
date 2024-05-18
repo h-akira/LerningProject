@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3 class="title is-3 padding-top-10">設定</h3>
+<form method="post">
+  {% csrf_token %}
+  {# {% for error in form.errors.values %} #}
+    {# {{ error }} #}
+  {# {% endfor %} #}
+  {{ form.as_p }}
+  {# <p>辞書を新しいタブで開く: {{ form.dic_new_tab }}</p> #}
+  {# <p>辞書の種類　　　　　　: {{ form.dic_link }}</p> #}
+  <div class="padding-top-10">
+    <button type="submit" class="button is-link">保存して終了</button>
+    {# <a href="{% url 'english:index' %}" class="button is-link">保存せず終了</a> #}
+  </div>
+</form>
+{% endblock content %}

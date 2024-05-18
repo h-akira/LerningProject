@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+{# <link href="{% static 'mdeditor/css/editormd.min.css' %}" rel="stylesheet"> #}
+{# <link href="{% static 'mdeditor/css/editormd.preview.css' %}" rel="stylesheet"> #}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+{# <link rel="stylesheet" href="{% static 'css/codehilight.css' %}"> #}
+{# <link rel="stylesheet"href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.16.2/build/styles/default.min.css"> #}
+{% endblock extra_css %}
+
+{% block title %}{{ page.title }}{% endblock title %}
+{% block content %}
+{# <div class="has-background-light has-text-white-bis"> #}
+<div class="has-background-link has-text-white-bis">
+  <div class="padding-side padding-top-10 padding-bottom-10">
+    <h1 class="title is-1 has-text-white-bis">
+      {{ private_dic.word }}
+    </h1>
+    {% if page.star %}
+    {# <i class="bi bi-lock"></i> #}
+    <i class="bookmark-star"></i>
+    {% endif %}
+    {% if source %}
+    <p>
+      本文中表記　: {{ source }}
+    </p>
+    {% endif %}
+    <p>
+      最終アクセス: {{ private_dic.last_access }}
+    </p>
+    <p>
+      アクセス回数: {{ private_dic.access_counter }}
+    </p>
+    <a id="share-link" href="{% url 'english:private_dic_edit' private_dic.id %}" class="button is-light is-link">
+      編集
+    </a>
+    {# <button id="copy-button" class="button is-info is-light"> #}
+    {#   共有URLをコピー #}
+    {# </button> #}
+  </div>
+</div>
+<div class="padding-side content" id="id_text">
+  <p>品詞: {{ private_dic.pos_jp }}</p>
+  <p>意味:</p>
+  <p>{{ private_dic.mean_jp }}</p>
+  <p>メモ:</p>
+  <p>{{ private_dic.memo }}</p>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+{# <script src="{% static 'js/clip.js' %}"></script> #}
+{% endblock extra_js %}
