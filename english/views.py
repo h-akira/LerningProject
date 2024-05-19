@@ -15,7 +15,7 @@ from tree import Tree, gen_tree_htmls, gen_pages_ordered_by_tree
 from language.english import text2SentenceTable, sentence2html, POS_DICTIONARY
 from urllib.parse import quote
 
-def index(request):
+def index(request):  # トップのページ
   if request.user.is_authenticated:
     pages = PageTable.objects.filter(Q(user__is_superuser=True) | Q(user=request.user)).order_by("-last_updated")
   else:
@@ -27,18 +27,18 @@ def index(request):
   }
   return render(request, 'english/index.html', context)
 
-def share_detail(request, share_code):
+def share_detail(request, share_code):  # 英文のページを共有URLからアクセスした場合
   try:
     page = PageTable.objects.get(share_code=share_code)
   except PageTable.DoesNotExist:
     return not_found(request)
   return detail(request, page.user.username, page.slug, share=True)
 
-def detail_by_id(request, id):
+def detail_by_id(request, id):  # 英文のページをID指定でアクセスした場合
   page = get_object_or_404(PageTable, pk=id)
   return detail(request, page.user.username, page.slug)
 
-def detail(request, username, slug, share=False):
+def detail(request, username, slug, share=False):  # 英文のページをユーザー名とスラッグでアクセスした場合
   try:
     user = User.objects.get(username=username)
     page = PageTable.objects.get(user=user, slug=slug)
@@ -84,7 +84,7 @@ def detail(request, username, slug, share=False):
   return render(request, 'english/detail.html', context)
 
 @login_required
-def create(request, slug=None):
+def create(request, slug=None):  # 英文のページを新規作成する
   if request.method == 'POST':
     form = PageForm(request.POST)
     if form.is_valid():
@@ -121,18 +121,18 @@ def create(request, slug=None):
     }
     return render(request, 'english/edit.html', context)
 
-def share_update(request, share_code):
-  page = PageTable.objects.get(share_code=share_code)
-  return update(request, page.user.username, page.slug, share=True)
+# def share_update(request, share_code):
+#   page = PageTable.objects.get(share_code=share_code)
+#   return update(request, page.user.username, page.slug, share=True)
 
-def not_found(request, message="ページが見つかりません"):
+def not_found(request, message="ページが見つかりません"):  # ページが見つからな語った場合のページ
   context = {
     "message": message,
   }
   return render(request, 'english/not_found.html', context)
 
 @login_required
-def update(request, username, slug, share=False):
+def update(request, username, slug, share=False):   # 英文のページを更新する
   user = User.objects.get(username=username)
   try:
     page = PageTable.objects.get(user=user, slug=slug)
@@ -184,14 +184,14 @@ def update(request, username, slug, share=False):
     return redirect("english:index")
 
 @login_required
-def delete(request, id):
+def delete(request, id):  # 英文のページを削除する
   page = get_object_or_404(PageTable, pk=id)
   if request.user == page.user or page.edit_permission:
     page.delete()
   return redirect("english:index")
 
 @login_required
-def page_settings(request):
+def page_settings(request):  # 英文のページの優先度やスラッグを一括で編集する（まだテストしていない）
   if request.method == "POST":
     pages = PageTable.objects.filter(user=request.user)
     formset = PageSettingsFormSet(request.POST, queryset=pages)
@@ -223,7 +223,7 @@ def page_settings(request):
     }
     return render(request, 'english/page_settings.html', context)
 
-def _get_mean_jp(word):
+def _get_mean_jp(word):  # 英単語から日本語の意味を取得する（内部処理用）
   public_en2jp_dic = PublicEn2JpDictionaryTable.objects.filter(word__iexact=word)
   if public_en2jp_dic.exists():
     if public_en2jp_dic.count() == 1:
@@ -237,8 +237,11 @@ def _get_mean_jp(word):
     mean = "<未登録>"
   return mean
 
-def s2dic(request, id):
-  # ログインユーザーごとに辞書ページに移動（存在しなければ作成）
+def s2dic(request, id):  # 英文中の英単語をクリックした場合の処理
+  # ユーザーがログインしている場合はPrivateDictionary（将来英英辞典を追加することも想定している）
+  # ユーザーがログインしていない場合はPublicEn2JpDictionary
+  # にredirectする
+  # PrivateDictionaryはユーザーごとに辞書ページで、その単語に初めてアクセスした場合は新規作成される
   if request.user.is_authenticated:
     s = get_object_or_404(SentenceTable, pk=id)
     if request.user.dic_link == "weblio":
@@ -266,7 +269,7 @@ def s2dic(request, id):
 
 @login_required
 # def private_dic_page(request, pk, source_id=None):
-def private_dic_page(request, pk):
+def private_dic_page(request, pk):  # PrivateDictionaryのページ
   private_dic = get_object_or_404(PrivateDictionaryTable, pk=pk)
   if private_dic.user != request.user:
     return redirect("english:index")
@@ -282,7 +285,7 @@ def private_dic_page(request, pk):
   print(private_dic.last_source.word)
   return render(request, 'english/private_dic.html', context)
 
-def public_en2jp_dic_page_from_sentence(request, source_id=None):
+def public_en2jp_dic_page_from_sentence(request, source_id=None):  # PublicEn2JpDictionaryに英文中の単語からアクセスした場合
   s = get_object_or_404(SentenceTable, pk=source_id)
   return public_en2jp_dic_page(
     request, 
@@ -293,7 +296,7 @@ def public_en2jp_dic_page_from_sentence(request, source_id=None):
     source_page_id=s.page.id
   )
 
-def public_en2jp_dic_page(request, word, source=None, source_id=None, pos=None, source_page_id=None):
+def public_en2jp_dic_page(request, word, source=None, source_id=None, pos=None, source_page_id=None):  # PublicEn2JpDictionaryのページ
   mean = _get_mean_jp(word)
   context = {
     "word": word,
@@ -306,7 +309,7 @@ def public_en2jp_dic_page(request, word, source=None, source_id=None, pos=None, 
   }
   return render(request, 'english/public_dic.html', context)
 
-class PrivateDictionaryEditView(LoginRequiredMixin, UpdateView):
+class PrivateDictionaryEditView(LoginRequiredMixin, UpdateView):  # PrivateDictionaryを編集するページ
   model = PrivateDictionaryTable
   # fields = ('word','pos','star','mean_jp','memo')
   fields = ('word','pos','star','mean_jp')
