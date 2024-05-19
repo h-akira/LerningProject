@@ -1,5 +1,5 @@
 from django.urls import path, re_path
-from .views import index, detail, create, update, delete, page_settings, share_detail, not_found, s2dic, private_dic_page, PrivateDictionaryEditView, detail_by_id, public_en2jp_dic_page, public_en2jp_dic_page_from_sentence
+from .views import index, detail, create, update, delete, page_settings, share_detail, not_found, s2dic, private_dic_page, PrivateDictionaryEditView, detail_by_id, public_en2jp_dic_page, public_en2jp_dic_page_from_sentence, private_history
 
 app_name = "english"
 
@@ -20,4 +20,5 @@ urlpatterns = [
   path('private/edit/<int:pk>/', PrivateDictionaryEditView.as_view(), name='private_dic_edit'),
   path('public/en2jp/<str:word>/', public_en2jp_dic_page, name='public_en2jp'),
   path('s/<int:source_id>/public/', public_en2jp_dic_page_from_sentence, name='public_en2jp_from_sentence'),
+  path('private/history/', private_history, name='private_history'),
 ]

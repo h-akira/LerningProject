@@ -6,14 +6,15 @@ from django.db.models import Q
 from django.urls import reverse, reverse_lazy
 from django.views.generic import UpdateView
 # from django.views.generic import TemplateView
+from django.core.paginator import Paginator
+from django.conf import settings
 from .models import PageTable, PrivateDictionaryTable, SentenceTable, PublicEn2JpDictionaryTable
 from .forms import PageForm, PageSettingsFormSet
 import random
-from django.conf import settings
+from urllib.parse import quote
 # 独自ライブラリ
 from tree import Tree, gen_tree_htmls, gen_pages_ordered_by_tree
 from language.english import text2SentenceTable, sentence2html, POS_DICTIONARY
-from urllib.parse import quote
 
 def index(request):  # トップのページ
   if request.user.is_authenticated:
@@ -261,7 +262,6 @@ def s2dic(request, id):  # 英文中の英単語をクリックした場合の�
         last_source=s
       )
       private_dic.save()
-    # return redirect("english:private_dic_page_with_source", pk=private_dic.id,source_id=id)
     return redirect("english:private_dic_page", pk=private_dic.id)
   else:
     # return redirect(f"https://ejje.weblio.jp/content/{s.lemma.lower()}")
@@ -273,9 +273,6 @@ def private_dic_page(request, pk):  # PrivateDictionaryのページ
   private_dic = get_object_or_404(PrivateDictionaryTable, pk=pk)
   if private_dic.user != request.user:
     return redirect("english:index")
-  # if source_id:
-  #   source = SentenceTable.objects.get(pk=source_id)
-  #   private_dic.last_source = source
   private_dic.access_counter += 1
   private_dic.save()
   context = {
@@ -317,4 +314,16 @@ class PrivateDictionaryEditView(LoginRequiredMixin, UpdateView):  # PrivateDicti
   def get_success_url(self):
     return reverse_lazy('english:private_dic_page', kwargs={'pk': self.object.pk})
 
+@login_required
+def private_history(request):  # PrivateDictionaryの履歴ページ
+  private_dics_all = PrivateDictionaryTable.objects.filter(user=request.user).order_by("-last_access")
+  per_page = request.GET.get('per_page', 50)
+  page = request.GET.get('page')
+  paginator = Paginator(private_dics_all, per_page)
+  private_dics = paginator.get_page(page)
+  context = {
+    "private_dics": private_dics,
+    "nav_tree_htmls":gen_tree_htmls(request, User, PageTable, a_white=True)
+  }
+  return render(request, 'english/private_history.html', context)
 
